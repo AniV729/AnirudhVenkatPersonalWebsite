@@ -160,3 +160,95 @@ window.addEventListener('DOMContentLoaded', () => {
     setTimeout(() => el.classList.add('visible'), 100 + i * 120);
   });
 });
+
+/* ── COURSE MODAL ── */
+const COURSES = {
+  cs: {
+    name: 'Computer Science',
+    icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16,18 22,12 16,6"/><polyline points="8,6 2,12 8,18"/></svg>`,
+    courses: [
+      { code: 'EECS 203',      name: 'Discrete Math' },
+      { code: 'EECS 280',      name: 'Programming & Data Structures' },
+      { code: 'EECS 281',      name: 'Data Structures & Algorithms' },
+      { code: 'EECS 370',      name: 'Computer Organization' },
+      { code: 'ENGR 100',      name: 'Technological Revolutions' },
+      { code: 'EECS 445',      name: 'Machine Learning' },
+      { code: 'EECS 482 & 408', name: 'Advanced Operating Systems' },
+    ]
+  },
+  ross: {
+    name: 'Ross School of Business',
+    icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>`,
+    courses: [
+      { code: 'BA 100',        name: 'Intro to Ross' },
+      { code: 'BA 200',        name: 'Businesses & Leaders' },
+      { code: 'Econ 101',      name: 'Microeconomics' },
+      { code: 'ACC 300',       name: 'Financial Accounting' },
+      { code: 'BCOM 250',      name: 'Business Communication' },
+      { code: 'FIN 300',       name: 'Financial Management' },
+      { code: 'TO 301',        name: 'Business Analytics & Statistics' },
+      { code: 'ACC 301',       name: 'Managerial Accounting' },
+      { code: 'Econ 102',      name: 'Macroeconomics' },
+      { code: 'Strategy 290',  name: 'Business Strategy' },
+      { code: 'TO 300',        name: 'Business Information Systems' },
+    ]
+  },
+  math: {
+    name: 'Mathematics Minor',
+    icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="5" x2="5" y2="19"/><circle cx="6.5" cy="6.5" r="2.5"/><circle cx="17.5" cy="17.5" r="2.5"/></svg>`,
+    courses: [
+      { code: 'Math 214', name: 'Linear Algebra' },
+      { code: 'Math 215', name: 'Multivariable Calculus' },
+      { code: 'Math 216', name: 'Differential Equations' },
+      { code: 'Math 423', name: 'Mathematics of Finance' },
+      { code: 'Math 425', name: 'Probability' },
+      { code: 'Math 481', name: 'Mathematical Logic' },
+    ]
+  }
+};
+
+const modal        = document.getElementById('course-modal');
+const modalIcon    = modal.querySelector('.course-modal-icon');
+const modalName    = modal.querySelector('.course-modal-name');
+const pillsWrap    = modal.querySelector('.course-pills-wrap');
+const closeBtn     = modal.querySelector('.course-modal-close');
+const backdrop     = modal.querySelector('.course-modal-backdrop');
+
+function openModal(key) {
+  const data = COURSES[key];
+  if (!data) return;
+
+  modalIcon.innerHTML = data.icon;
+  modalName.textContent = data.name;
+  pillsWrap.innerHTML = '';
+
+  data.courses.forEach(c => {
+    const pill = document.createElement('div');
+    pill.className = 'course-pill';
+    pill.innerHTML = `<code>${c.code}</code><span>${c.name}</span>`;
+    pillsWrap.appendChild(pill);
+  });
+
+  modal.classList.add('open');
+  modal.setAttribute('aria-hidden', 'false');
+  document.body.style.overflow = 'hidden';
+
+  // Staggered pill reveal
+  const pills = pillsWrap.querySelectorAll('.course-pill');
+  pills.forEach((pill, i) => {
+    setTimeout(() => pill.classList.add('visible'), 120 + i * 55);
+  });
+}
+
+function closeModal() {
+  modal.classList.remove('open');
+  modal.setAttribute('aria-hidden', 'true');
+  document.body.style.overflow = '';
+}
+
+document.querySelectorAll('.major-tile').forEach(tile => {
+  tile.addEventListener('click', () => openModal(tile.dataset.major));
+});
+closeBtn.addEventListener('click', closeModal);
+backdrop.addEventListener('click', closeModal);
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
