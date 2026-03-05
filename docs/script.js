@@ -1,3 +1,109 @@
+/* ── PARTICLE FIELD (cyber) ── */
+(function () {
+  const canvas = document.getElementById('particle-canvas');
+  const ctx = canvas.getContext('2d');
+  let W, H, particles, mouse = { x: -9999, y: -9999 };
+  const COUNT = 65, MAX_DIST = 140, SPEED = 0.5;
+  const C_GREEN  = '0,255,136';
+  const C_CYAN   = '0,220,255';
+  const C_HOT    = '57,255,20';   // neon lime for cursor
+  let tick = 0;
+
+  function resize() {
+    W = canvas.width  = window.innerWidth;
+    H = canvas.height = window.innerHeight;
+  }
+
+  function Particle() {
+    this.x      = Math.random() * W;
+    this.y      = Math.random() * H;
+    this.vx     = (Math.random() - 0.5) * SPEED;
+    this.vy     = (Math.random() - 0.5) * SPEED;
+    this.size   = Math.random() < 0.2 ? 3 : 1.5;   // some larger "hub" nodes
+    this.pulse  = Math.random() * Math.PI * 2;      // phase offset for blink
+    this.color  = Math.random() < 0.35 ? C_CYAN : C_GREEN;
+  }
+
+  function init() {
+    resize();
+    particles = Array.from({ length: COUNT }, () => new Particle());
+  }
+
+  function drawSquare(x, y, s, color, alpha) {
+    ctx.fillStyle = `rgba(${color},${alpha})`;
+    ctx.fillRect(x - s, y - s, s * 2, s * 2);
+  }
+
+  function draw() {
+    tick++;
+    ctx.clearRect(0, 0, W, H);
+
+    // update positions
+    for (const p of particles) {
+      p.x += p.vx; p.y += p.vy;
+      if (p.x < 0 || p.x > W) p.vx *= -1;
+      if (p.y < 0 || p.y > H) p.vy *= -1;
+    }
+
+    // connections between nodes
+    for (let i = 0; i < particles.length; i++) {
+      for (let j = i + 1; j < particles.length; j++) {
+        const dx = particles[i].x - particles[j].x;
+        const dy = particles[i].y - particles[j].y;
+        const d  = Math.sqrt(dx * dx + dy * dy);
+        if (d < MAX_DIST) {
+          const alpha = (1 - d / MAX_DIST) * 0.3;
+          ctx.beginPath();
+          ctx.moveTo(particles[i].x, particles[i].y);
+          ctx.lineTo(particles[j].x, particles[j].y);
+          ctx.strokeStyle = `rgba(${C_GREEN},${alpha})`;
+          ctx.lineWidth = 0.7;
+          ctx.stroke();
+        }
+      }
+
+      // cursor beam
+      const mdx = particles[i].x - mouse.x;
+      const mdy = particles[i].y - mouse.y;
+      const md  = Math.sqrt(mdx * mdx + mdy * mdy);
+      if (md < MAX_DIST * 1.5) {
+        const a = (1 - md / (MAX_DIST * 1.5)) * 0.55;
+        ctx.beginPath();
+        ctx.moveTo(particles[i].x, particles[i].y);
+        ctx.lineTo(mouse.x, mouse.y);
+        ctx.strokeStyle = `rgba(${C_HOT},${a})`;
+        ctx.lineWidth = 0.9;
+        ctx.stroke();
+      }
+    }
+
+    // draw nodes as squares with pulse
+    for (const p of particles) {
+      const blink = 0.55 + 0.45 * Math.sin(p.pulse + tick * 0.025);
+      drawSquare(p.x, p.y, p.size, p.color, blink);
+      // glow ring on hub nodes
+      if (p.size > 2) {
+        ctx.strokeStyle = `rgba(${p.color},${blink * 0.25})`;
+        ctx.lineWidth = 1;
+        ctx.strokeRect(p.x - p.size - 2, p.y - p.size - 2, (p.size + 2) * 2, (p.size + 2) * 2);
+      }
+    }
+
+    // cursor crosshair dot
+    if (mouse.x > 0) {
+      ctx.fillStyle = `rgba(${C_HOT},0.9)`;
+      ctx.fillRect(mouse.x - 2, mouse.y - 2, 4, 4);
+    }
+
+    requestAnimationFrame(draw);
+  }
+
+  window.addEventListener('resize', resize);
+  window.addEventListener('mousemove', e => { mouse.x = e.clientX; mouse.y = e.clientY; });
+  init();
+  draw();
+})();
+
 /* ── CURSOR GLOW ── */
 const glow = document.getElementById('cursor-glow');
 document.addEventListener('mousemove', e => {
@@ -30,11 +136,12 @@ mobileMenu.querySelectorAll('a').forEach(link => {
 
 /* ── TYPEWRITER ── */
 const phrases = [
-  'CS & Business @ University of Michigan',
-  'Software Engineer',
+  'Computer Science & Business @ University of Michigan',
+  'AI & ML Engineer',
   'Quantum Computing Researcher',
-  'Security Researcher',
+  'Cybersecurity Researcher',
   'Published Mathematician',
+  'Builder & Founder',
   'ISEF CIA 1st Place Winner',
 ];
 let phraseIdx = 0;
